@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>⛄ SNOWEE-AI Math Solver</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            color: white;
+            font-family: 'Segoe UI', Arial;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 20px;
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin: 10px 0;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .subtitle {
+            color: #a8e6cf;
+            font-size: 1.2rem;
+        }
+        .chat-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 300px;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+        .message {
+            margin: 15px 0;
+            padding: 12px 18px;
+            border-radius: 15px;
+            max-width: 80%;
+        }
+        .user-message {
+            background: rgba(66, 133, 244, 0.8);
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+        .ai-message {
+            background: rgba(255,255,255,0.15);
+            border-bottom-left-radius: 5px;
+        }
+        .ai-label {
+            color: #ffd166;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        input {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.9);
+            font-size: 16px;
+        }
+        button {
+            padding: 0 25px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #ff7e5f, #feb47b);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        .math-output {
+            background: rgba(0,0,0,0.4);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+        .snowflake {
+            position: fixed;
+            color: white;
+            font-size: 20px;
+            z-index: -1;
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            to { transform: translateY(100vh); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Snowflakes -->
+    <div id="snowflakes"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>⛄ SNOWEE-AI</h1>
+            <p class="subtitle">AI Matematika • Solver • Penjelasan Langkah demi Langkah</p>
+        </div>
+        
+        <div class="chat-container" id="chat">
+            <div class="message ai-message">
+                <div class="ai-label">⛄ SNOWEE-AI</div>
+                Halo! Saya SNOWEE-AI, asisten matematika Anda.<br>
+                Contoh perintah:<br>
+                • "Hitung 2+2"<br>
+                • "Turunan dari x^2"<br>
+                • "Faktor dari x^2-4"<br>
+                • "Luas lingkaran jari-jari 7"<br>
+                • "Selesaikan 2x+5=15"
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Deskripsi soal matematika..." autocomplete="off">
+            <button onclick="sendMessage()">Kirim</button>
+        </div>
+    </div>
+
+    <script>
+        const chat = document.getElementById('chat');
+        const userInput = document.getElementById('userInput');
+        
+        // Create snowflakes
+        for(let i=0; i<30; i++) {
+            let snow = document.createElement('div');
+            snow.className = 'snowflake';
+            snow.innerHTML = '❄';
+            snow.style.left = Math.random() * 100 + 'vw';
+            snow.style.animationDuration = Math.random() * 3 + 2 + 's';
+            snow.style.opacity = Math.random() * 0.5 + 0.3;
+            document.getElementById('snowflakes').appendChild(snow);
+        }
+        
+        function addMessage(text, isUser = false) {
+            const msg = document.createElement('div');
+            msg.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+            
+            if(!isUser) {
+                msg.innerHTML = `<div class="ai-label">⛄ SNOWEE-AI</div>${text}`;
+            } else {
+                msg.textContent = text;
+            }
+            
+            chat.appendChild(msg);
+            chat.scrollTop = chat.scrollHeight;
+        }
+        
+        function solveMath(query) {
+            const q = query.toLowerCase().trim();
+            
+            // Arithmetic
+            if(q.match(/hitung|berapa|hasil dari|[\d\+\-\*\/\^\(\)\.]/)) {
+                try {
+                    // Simple calculation
+                    if(q.match(/^[\d\+\-\*\/\^\(\)\.\s]+$/)) {
+                        const expr = q.replace(/[^0-9\+\-\*\/\^\(\)\.]/g, '');
+                        const result = eval(expr.replace(/\^/g, '**'));
+                        return `🧮 <b>Perhitungan:</b> ${expr} = ${result}`;
+                    }
+                    
+                    // Specific patterns
+                    if(q.includes('tambah') || q.includes('+')) {
+                        const nums = q.match(/\d+/g);
+                        if(nums && nums.length >= 2) {
+                            const sum = nums.reduce((a,b) => parseInt(a)+parseInt(b), 0);
+                            return `➕ <b>Penjumlahan:</b> ${nums.join(' + ')} = ${sum}`;
+                        }
+                    }
+                    
+                    if(q.includes('kurang') || q.includes('-')) {
+                        const nums = q.match(/\d+/g);
+                        if(nums && nums.length >= 2) {
+                            const diff = nums[0] - nums[1];
+                            return `➖ <b>Pengurangan:</b> ${nums[0]} - ${nums[1]} = ${diff}`;
+                        }
+                    }
+                    
+                    if(q.includes('kali') || q.includes('*')) {
+                        const nums = q.match(/\d+/g);
+                        if(nums && nums.length >= 2) {
+                            const product = nums.reduce((a,b) => a*b, 1);
+                            return `✖️ <b>Perkalian:</b> ${nums.join(' × ')} = ${product}`;
+                        }
+                    }
+                    
+                    if(q.includes('bagi') || q.includes('/')) {
+                        const nums = q.match(/\d+/g);
+                        if(nums && nums.length >= 2) {
+                            if(nums[1] == 0) return "❌ <b>Error:</b> Pembagian dengan nol";
+                            const quotient = nums[0] / nums[1];
+                            return `➗ <b>Pembagian:</b> ${nums[0]} ÷ ${nums[1]} = ${quotient}`;
+                        }
+                    }
+                } catch(e) {
+                    return "❌ <b>Error:</b> Ekspresi matematika tidak valid";
+                }
+            }
+            
+            // Algebra
+            if(q.includes('turunan') || q.includes('derivative')) {
+                return `📈 <b>Turunan:</b><br>
+                • x^n → n*x^(n-1)<br>
+                • sin(x) → cos(x)<br>
+                • cos(x) → -sin(x)<br>
+                • e^x → e^x`;
+            }
+            
+            if(q.includes('integral')) {
+                return `📉 <b>Integral:</b><br>
+                • x^n → x^(n+1)/(n+1) + C<br>
+                • sin(x) → -cos(x) + C<br>
+                • cos(x) → sin(x) + C<br>
+                • e^x → e^x + C`;
+            }
+            
+            if(q.includes('faktor') || q.includes('faktorkan')) {
+                return `🔢 <b>Faktorisasi:</b><br>
+                • x² - a² = (x-a)(x+a)<br>
+                • x² + 2ax + a² = (x+a)²<br>
+                • ax² + bx + c → cari faktor`;
+            }
+            
+            // Geometry
+            if(q.includes('luas')) {
+                if(q.includes('lingkaran')) {
+                    const r = q.match(/\d+/);
+                    if(r) {
+                        const area = Math.PI * r[0] * r[0];
+                        return `⭕ <b>Luas Lingkaran:</b> π × r² = π × ${r[0]}² ≈ ${area.toFixed(2)}`;
+                    }
+                }
+                if(q.includes('segitiga')) {
+                    return `📐 <b>Luas Segitiga:</b> ½ × alas × tinggi`;
+                }
+                if(q.includes('persegi')) {
+                    return `🟨 <b>Luas Persegi:</b> sisi × sisi`;
+                }
+            }
+            
+            if(q.includes('volume')) {
+                if(q.includes('kubus')) {
+                    return `⬛ <b>Volume Kubus:</b> sisi³`;
+                }
+                if(q.includes('tabung')) {
+                    return `🛢️ <b>Volume Tabung:</b> π × r² × t`;
+                }
+            }
+            
+            // Equation solving
+            if(q.includes('=')) {
+                const eqMatch = q.match(/(\d*)x\s*([\+\-])\s*(\d+)\s*=\s*(\d+)/);
+                if(eqMatch) {
+                    const [_, coeff, op, constant, result] = eqMatch;
+                    const a = coeff ? parseInt(coeff) : 1;
+                    const b = parseInt(constant);
+                    const c = parseInt(result);
+                    
+                    if(op === '+') {
+                        const x = (c - b) / a;
+                        return `⚖️ <b>Penyelesaian:</b> ${a}x + ${b} = ${c}<br>
+                        ${a}x = ${c} - ${b}<br>
+                        ${a}x = ${c-b}<br>
+                        x = ${c-b} / ${a}<br>
+                        x = ${x}`;
+                    } else {
+                        const x = (c + b) / a;
+                        return `⚖️ <b>Penyelesaian:</b> ${a}x - ${b} = ${c}<br>
+                        ${a}x = ${c} + ${b}<br>
+                        ${a}x = ${c+b}<br>
+                        x = ${c+b} / ${a}<br>
+                        x = ${x}`;
+                    }
+                }
+            }
+            
+            // Default response
+            return `⛄ <b>Analisis:</b> "${query}"<br>
+            • Jenis: Matematika umum<br>
+            • Saran: Gunakan format lebih spesifik<br>
+            • Contoh: "Hitung 15% dari 200" atau "Selesaikan 3x-7=20"`;
+        }
+        
+        function sendMessage() {
+            const text = userInput.value.trim();
+            if(!text) return;
+            
+            addMessage(text, true);
+            userInput.value = '';
+            
+            // Simulate AI thinking
+            setTimeout(() => {
+                const response = solveMath(text);
+                addMessage(response);
+            }, 500);
+        }
+        
+        userInput.addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>
